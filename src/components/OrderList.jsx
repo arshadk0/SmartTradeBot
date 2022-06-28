@@ -3,49 +3,56 @@ import '../App.css';
 
 const OrderList = () => {
   return (
+    <>
+    <div className='heading'>
+       Order History
+    </div>
+    
     <div>
     <table>
       <thead>
   <tr>
-    <th>Company</th>
-    <th>Contact</th>
-    <th>Country</th>
+    <th>Transaction Type</th>
+    <th>Profit/Loss</th>
+    <th>Time</th>
   </tr>
   </thead>
   <tbody>
   <tr>
-    <td>Alfreds Futterkiste</td>
-    <td>Maria Anders</td>
-    <td>Germany</td>
+    <td>Purchase</td>
+    <td> Profit </td>
+    <td>1 AM</td>
   </tr>
   <tr>
-    <td>Centro comercial Moctezuma</td>
-    <td>Francisco Chang</td>
-    <td>Mexico</td>
+  <td>Purchase</td>
+    <td> Profit </td>
+    <td>1 AM</td>
   </tr>
   <tr>
-    <td>Ernst Handel</td>
-    <td>Roland Mendel</td>
-    <td>Austria</td>
+  <td>Purchase</td>
+    <td> Profit </td>
+    <td>1 AM</td>
   </tr>
   <tr>
-    <td>Island Trading</td>
-    <td>Helen Bennett</td>
-    <td>UK</td>
+  <td>Purchase</td>
+    <td> Profit </td>
+    <td>1 AM</td>
   </tr>
   <tr>
-    <td>Laughing Bacchus Winecellars</td>
-    <td>Yoshi Tannamuri</td>
-    <td>Canada</td>
+  <td>Purchase</td>
+    <td> Profit </td>
+    <td>1 AM</td>
   </tr>
   <tr>
-    <td>Magazzini Alimentari Riuniti</td>
-    <td>Giovanni Rovelli</td>
-    <td>Italy</td>
+  <td>Purchase</td>
+    <td> Profit </td>
+    <td>1 AM</td>
   </tr>
   </tbody>
 </table>
     </div>
+    
+    </>
   )
 }
 

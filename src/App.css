@@ -4,19 +4,21 @@
   background-color: rgb(250, 249, 248);
 }
 
+.heading{
+  font: italic bolder 30px serif;
+  text-align: center;
+  margin: 25px;
+}
+
 .invent-container {
   display: flex;
   height : 10vh;
-  text-align: center;
   align-items: center;
+  justify-content: space-around;
 }
 
-.btc-box{
-  flex: 0.5;
-}
-
-.usdt-box{
-  flex: 0.5;
+.invent-container h4{
+  font-size: 30px;
 }
 
 
@@ -34,4 +36,9 @@ td, th {
 
 tr:nth-child(even) {
   background-color: #bc4949;
+}
+
+.chart-container{
+  width: 80%;
+  margin : 15px auto;
 }

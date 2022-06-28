@@ -21,7 +21,7 @@ ChartJS.register(
 );
 
 const cdata =[2,3,-4,-6,5];
-const color = cdata.map((item) => item>0 ? 'blue' : 'red');
+const color = cdata.map((item) => item>0 ? 'rgba(53, 162, 235, 0.5)' : 'rgba(255, 99, 132, 0.5)');
 
 const Chart = () => {
      
@@ -29,16 +29,20 @@ const Chart = () => {
     labels: ['Red', 'Orange', 'Blue','green' , 'yellow'],
     datasets: [
         {
-          label: 'Popularity of colours',
+          label: ['Profit'],
           data: cdata,
           backgroundColor: color,
-          borderWidth: 1,
+          borderWidth: 0.2,
         }
     ]
 }
  
   return (
-    <div>
+    <>
+    <div className='heading'>
+      Finance Chart
+    </div>
+    <div className='chart-container'>
       <Bar
         data={data}
         options={{
@@ -55,6 +59,7 @@ const Chart = () => {
         }}
       />
     </div>
+    </>
   )
 }
 
