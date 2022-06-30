@@ -59,37 +59,38 @@ async function getPercentPriceDiff(cPrice, pPrice){ //working
 
 async function getLastTrans(){   //working
     const response = await axios.get("http://localhost:3000/lastTransaction")
+
     return { "time":response.data[0]["time_stamp"], "btc":response.data[0]["updated_btc_inventory"], "usdt":response.data[0]["updated_usdt_inventory"] }
 }
-/************************************************************************ */
+
 async function createOrder(priceDiff, time_stamp, currPrice, btc, usdt){
-    var order_type, updated_btc, updated_usdt
+    var Order_type, updated_btc, updated_usdt
     const trade_amount = 0.001
     const trade_value = trade_amount*currPrice;
     if(priceDiff>0.0002){
-        order_type = "Sell"
+        Order_type = 'Sell'
         updated_btc = btc - trade_amount
         updated_usdt = usdt + trade_value
     }
     else{
-        order_type = "Buy"
+        Order_type = 'Buy'
         updated_btc = btc + trade_amount
         updated_usdt = usdt - trade_value
     }
-    pool.query("INSERT INTO transaction (time_stamp, order_type, trade_amount, trade_price, trade_value, updated_btc_inventory, updated_usdt_inventory)VALUES("+time_stamp+","+order_type+","+trade_amount+","+currPrice+","+trade_value+","+updated_btc+","+updated_usdt+")",(err, res) => { //working
-        console.log(` ${time_stamp} ${order_type} ${trade_amount} ${currPrice} ${trade_value} ${updated_btc} ${updated_usdt}`);
+    pool.query("INSERT INTO transaction (time_stamp, order_type, trade_amount, trade_price, trade_value, updated_btc_inventory, updated_usdt_inventory)VALUES("+time_stamp+","+"\'"+Order_type+"\'"+","+trade_amount+","+currPrice+","+trade_value+","+updated_btc+","+updated_usdt+")",(err, res) => { //working
+        //console.log(` ${time_stamp} ${Order_type} ${trade_amount} ${currPrice} ${trade_value} ${updated_btc} ${updated_usdt}`);
     });
-    /*pool.query("INSERT INTO transactions (time_stamp, order_type, trade_amount, trade_price, trade_value, updated_btc_inventory, updated_usdt_inventory)VALUES("+time_stamp+","+order_type+","+trade_amount+","+currPrice+","+trade_value+","+updated_btc+","+updated_usdt+")", (err, res) => {
-        console.log(` ${time_stamp} ${order_type} ${trade_amount} ${currPrice} ${trade_value} ${updated_btc} ${updated_usdt}`);
-    });*/
 }
 
 async function init() {
     connect_database();
     db.initiatePool(pool)
     cron.schedule('*/10 * * * * *', async () => {
+
         //get price from binance api
         const currPrice  = await getLatestPrice()
+
+
         //put it in db
         const currTime = Math.floor(new Date().getTime()/1000.0)
         await createLatestPrice(currTime, currPrice)
@@ -99,11 +100,11 @@ async function init() {
 
         //do calculation
         const priceDiff = await getPercentPriceDiff(currPrice, prevPrice)
-        console.log(`Pricediff is ${priceDiff}`);
+
         // check price is 2% up or down
         if(priceDiff>0.0002 || priceDiff<(-0.0002)){
             const lastTrans = await getLastTrans()  //get last trans details(time, btc, usdt)
-            if(currTime - lastTrans['time']>300){
+            if(currTime - lastTrans['time']>20){
                 //place order in database, update btc and update usdt
                 await createOrder(priceDiff, currTime, currPrice, lastTrans['btc'], lastTrans['usdt'])
             }
@@ -114,9 +115,9 @@ async function init() {
 
 
 app.get('/allTransactions', db.allTransactions)
+app.get('/lastTransaction', db.lastTransaction)
 app.get('/findTenMinsPrice', db.findTenMinsPrice)
-
-
+app.get('/getWallet', db.getWallet)
 
 const PORT = 3000;
 app.listen(PORT, function () {
@@ -124,3 +125,4 @@ app.listen(PORT, function () {
 });
 
 init().then(() => { console.log('Function is started.'); });
+
