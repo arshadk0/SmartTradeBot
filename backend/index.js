@@ -9,6 +9,7 @@ const app = express()
 const bodyParser = require('body-parser')
 const { Pool, Client } = require("pg");
 const { log } = require('console');
+const cors = require("cors")
 const api = "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT";
 
 app.use(bodyParser.json())
@@ -17,6 +18,7 @@ app.use(
     extended: true,
   })
 )
+app.use(cors())
 
 var pool;
 function connect_database(){
