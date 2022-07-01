@@ -42,3 +42,11 @@ tr:nth-child(even) {
   width: 80%;
   margin : 15px auto;
 }
+
+.profit{
+  color: green;
+}
+
+.loss{
+  color: red;
+}

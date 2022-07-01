@@ -1,6 +1,7 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import '../App.css';
+// import 'antd/dist/antd.css';
 
 const Inventory = () => {
   
@@ -35,8 +36,8 @@ const Inventory = () => {
         </div> */}
 
 <div className='btcusdt-box'>
-            <h4>Real time price</h4>
-            <h4>1 BTC = <span>{btcUsdtPrice}</span> USDT</h4>
+            {/* <h4>Real time price</h4> */}
+            <h4>1 BTC = <span>{btcUsdtPrice === 0 ? "Fetching..." : btcUsdtPrice}</span> USDT</h4>
            
         </div>
 
@@ -44,12 +45,12 @@ const Inventory = () => {
           wallet.map(data => {
             return (
               <div >
-                
+                <h4>Real time price</h4>
               <div className='btc-box'>
-            <h4>BTC left : <span>{data.updated_btc_inventory}</span></h4>
+            <h4>BTC left : <span>{data.updated_btc_inventory.toFixed(3)}</span></h4>
           </div>
           <div className='btc-box'>
-            <h4>USDT left: <span>{data.updated_usdt_inventory}</span></h4>
+            <h4>USDT left: <span>{data.updated_usdt_inventory.toFixed(3)}</span></h4>
           </div>
           
               </div>
