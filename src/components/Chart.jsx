@@ -33,7 +33,8 @@ const Chart = ({pwallet}) => {
   },[pwallet])
 
 
-  const valuedata = pldata?.map((item) => item?.value);
+  var valuedata = pldata?.map((item) => item?.value);
+   valuedata = valuedata.filter((item, index) => index !=0);
   const color = valuedata.map((item) => item>0 ? 'rgba(53, 162, 235, 0.5)' : 'rgba(255, 99, 132, 0.5)');
 
   var timedata = pldata?.map((item) => getOnlyTimeFromUnixTime(item?.time));
