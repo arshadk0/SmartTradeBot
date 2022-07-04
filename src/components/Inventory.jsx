@@ -8,17 +8,30 @@ const Inventory = () => {
   const [wallet , setWallet] = useState([])
   const [btcUsdtPrice , setbtcUsdtPrice] = useState(0) 
 
-  let btcStream = new WebSocket("wss://stream.binance.com:9443/ws/btcusdt@ticker")
-  btcStream.onmessage = function(event){
-    // console.log(JSON.parse(event.data)["c"])
-    setbtcUsdtPrice(JSON.parse(event.data)["c"])
-  }
+  
 
   useEffect(() => {
-    axios.get("http://localhost:3000/getWallet")
-    .then(res => res.data)
-    .then(data => setWallet(data))
+    let btcStream = new WebSocket("wss://stream.binance.com:9443/ws/btcusdt@ticker")
+    btcStream.onmessage = function(event){
+      // console.log(JSON.parse(event.data)["c"])
+      setbtcUsdtPrice(JSON.parse(event.data)["c"])
+    }
+  
+    let walletStream = new WebSocket("ws://localhost:3000/getWallet")
+    // console.log(walletStream.onmessage);
+      walletStream.onmessage = function(event){
+      console.log(event.data)
+      // console.log(JSON.parse(event.data));
+      // console.log(typeof JSON.parse(JSON.parse(event.data)));
+      setWallet(JSON.parse(JSON.parse(event.data)))
+    }
   } , [])
+
+  // useEffect(() => {
+  //   axios.get("http://localhost:3000/getWallet")
+  //   .then(res => res.data)
+  //   .then(data => setWallet(data))
+  // } , [])
 
   // let walletData = new WebSocket("http://localhost:3000/getWallet")
   // walletData.onmessage = function(event){

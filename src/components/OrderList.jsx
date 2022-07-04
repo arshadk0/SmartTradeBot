@@ -24,19 +24,39 @@ const OrderList = () => {
     return realTime
   }
 
- useEffect(() => {
-   axios.get("http://localhost:3000/allTransactions")
-   .then(res => res.data)
-   .then(data => {
+//  useEffect(() => {
+//    axios.get("http://localhost:3000/allTransactions")
+//    .then(res => res.data)
+//    .then(data => {
       
-    for(let i=0; i<data.length; i++){
-      data[i].time_stamp = getRealTimeFromUnixTime(data[i].time_stamp)
-      data[i].trade_value = data[i].trade_value.toFixed(5)
-      data[i].trade_price = data[i].trade_price.toFixed(3)
+//     for(let i=0; i<data.length; i++){
+//       data[i].time_stamp = getRealTimeFromUnixTime(data[i].time_stamp)
+//       data[i].trade_value = data[i].trade_value.toFixed(5)
+//       data[i].trade_price = data[i].trade_price.toFixed(3)
+//     }
+//     setOrders(data)
+//    })
+//  } , [])
+
+useEffect(() => {
+  let ordersStream = new WebSocket("ws://localhost:3002/allTransactions")
+  
+  ordersStream.onmessage = function(event){
+    // console.log(event.data)
+
+    let allOrdersArr = JSON.parse(JSON.parse(event.data))
+
+      for(let i=0; i<allOrdersArr.length; i++){
+        allOrdersArr[i].time_stamp = getRealTimeFromUnixTime(allOrdersArr[i].time_stamp)
+        allOrdersArr[i].trade_value = allOrdersArr[i].trade_value.toFixed(5)
+        allOrdersArr[i].trade_price = allOrdersArr[i].trade_price.toFixed(3)
     }
-    setOrders(data)
-   })
- } , [])
+
+    setOrders(allOrdersArr)
+  }
+} , [])
+
+ 
 
  const columns = [
 
@@ -70,7 +90,12 @@ const OrderList = () => {
      title: 'Trade Value',
      dataIndex: 'trade_value',
      key: 'trade_value'
-   }
+   },
+   {
+      title: 'Profit/Loss',
+      dataIndex: 'profit_loss',
+      key: 'profit_loss'
+    }
 ]
 
 
