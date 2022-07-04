@@ -46,7 +46,11 @@ async function createOrder(time_stamp, currPrice, trade_amount, trade_value, Ord
 
 async function lastTransaction(){ 
     let data =  await pool.query("SELECT time_stamp, updated_btc_inventory, updated_usdt_inventory, profit_loss FROM transaction ORDER BY time_stamp DESC LIMIT 1") 
-    //console.log(data); if(data.rows.length == 0) return JSON.stringify({ “time”:“0”, “btc”:1.000, “usdt”:10000.00, “profit_loss”:0.0 }) 
+    if(data.rows.length == 0){
+        await createOrder(0, 0, 0, 0, '-', 1.00, 10000, 0)
+        let data =  await pool.query("SELECT time_stamp, updated_btc_inventory, updated_usdt_inventory, profit_loss FROM transaction ORDER BY time_stamp DESC LIMIT 1") 
+        return JSON.stringify(data.rows)
+    }
     return JSON.stringify(data.rows) 
 }
 
