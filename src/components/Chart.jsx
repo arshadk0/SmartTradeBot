@@ -45,7 +45,7 @@ const Chart = ({pwallet}) => {
     labels: timedata,
     datasets: [
         {
-          label: ['Loss'],
+          label: ['Profit'],
           data: valuedata,
           backgroundColor: color,
           borderWidth: 0.2,
