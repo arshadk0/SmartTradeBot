@@ -132,13 +132,19 @@ async function init() {
                 
                 
                 await createOrder(priceDiff, currTime, currPrice, lastTrans['btc'], lastTrans['usdt'], prevPrice)
-                if(webSocketTransaction === undefined && webSocketWallet === undefined){
-                    console.log("Data not sent to frontend as WebSocketClient is not connected");
+                if(webSocketTransaction === undefined){
+                    console.log("Data not sent to frontend as WebSocketClient of transaction is not connected");
                 }
                 else{
                     await triggerWebSocketTransaction()
+                    console.log("Sent to frontend via websocketTransaction");
+                }
+                if(webSocketWallet === undefined){
+                    console.log("Data not sent to frontend as WebSocketClient of wallet is not connected");
+                }
+                else{
                     await triggerWebSocketWallet()
-                    console.log("Sent to frontend via websocket");
+                    console.log("Sent to frontend via websocketWallet");
                 }
                 
             }
