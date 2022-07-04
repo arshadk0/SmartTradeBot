@@ -14,11 +14,13 @@ const OrderList = () => {
     
     let date = new Date(unixTime * 1000);
     
+    // console.log(date.toDateString());
+
     let hours = date.getHours();
     let minutes = "0" + date.getMinutes();
     let seconds = "0" + date.getSeconds();
 
-    let realTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+    let realTime = date.toDateString() + " " + hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
     return realTime
   }
 
@@ -49,7 +51,10 @@ const OrderList = () => {
    {
     title: 'Order Type',
     dataIndex: 'order_type',
-    key: 'order_type'
+    key: 'order_type',
+    sorter: (a, b) => {
+      return a.order_type<b.order_type;
+    }
   },
   {
     title: 'Trade Amount',
@@ -73,6 +78,7 @@ const OrderList = () => {
    <>
     <div className='heading'>
       <header className='Order History'>
+        <br></br>
        <Table
          dataSource= {orders}
          columns={columns}
