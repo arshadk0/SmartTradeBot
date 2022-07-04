@@ -1,7 +1,7 @@
 const https = require('https')
 const express = require('express');
 const cron = require('node-cron');
-require('dotenv').config({path: '../.env'})
+require('dotenv').config({path: './.env'})
 const axios = require('axios');
 const request = require("request");
 const { application } = require('express');
