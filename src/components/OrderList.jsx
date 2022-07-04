@@ -5,24 +5,25 @@ import {Table} from 'antd'
 import 'antd/dist/antd.css';
 // import type { ColumnsType } from 'antd/lib/table';
 import '../App.css';
+import { getRealTimeFromUnixTime } from '../utils';
 
 
 const OrderList = () => {
  const [orders , setOrders] = useState([])
 
-   function getRealTimeFromUnixTime(unixTime){
+  //  function getRealTimeFromUnixTime(unixTime){
     
-    let date = new Date(unixTime * 1000);
+  //   let date = new Date(unixTime * 1000);
     
-    // console.log(date.toDateString());
+  //   // console.log(date.toDateString());
 
-    let hours = date.getHours();
-    let minutes = "0" + date.getMinutes();
-    let seconds = "0" + date.getSeconds();
+  //   let hours = date.getHours();
+  //   let minutes = "0" + date.getMinutes();
+  //   let seconds = "0" + date.getSeconds();
 
-    let realTime = date.toDateString() + " " + hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
-    return realTime
-  }
+  //   let realTime = date.toDateString() + " " + hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+  //   return realTime
+  // }
 
 //  useEffect(() => {
 //    axios.get("http://localhost:3000/allTransactions")
@@ -56,7 +57,7 @@ useEffect(() => {
   }
 } , [])
 
- 
+ console.log("ordersssssss", orders);
 
  const columns = [
 
@@ -94,7 +95,12 @@ useEffect(() => {
    {
       title: 'Profit/Loss',
       dataIndex: 'profit_loss',
-      key: 'profit_loss'
+      key: 'profit_loss',
+      render: (num) => (
+        <>
+          <p className={`${num >0 ? "profit" : "loss"}`}>{num}</p>
+        </>
+      )
     }
 ]
 

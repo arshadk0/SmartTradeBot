@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import '../App.css';
 // import 'antd/dist/antd.css';
 
-const Inventory = () => {
+const Inventory = ({setPwallet}) => {
   
   const [wallet , setWallet] = useState([])
   const [btcUsdtPrice , setbtcUsdtPrice] = useState(0) 
@@ -24,6 +24,7 @@ const Inventory = () => {
       // console.log(JSON.parse(event.data));
       // console.log(typeof JSON.parse(JSON.parse(event.data)));
       setWallet(JSON.parse(JSON.parse(event.data)))
+      setPwallet(JSON.parse(JSON.parse(event.data)))
     }
   } , [])
 

@@ -41,7 +41,10 @@ tr:nth-child(even) {
 .chart-container{
   width: 80%;
   margin : 15px auto;
+  overflow-x: scroll;
+  position: relative;
 }
+
 
 .profit{
   color: green;
