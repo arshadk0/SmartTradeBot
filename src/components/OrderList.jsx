@@ -98,7 +98,7 @@ useEffect(() => {
       key: 'profit_loss',
       render: (num) => (
         <>
-          <p className={`${num >0 ? "profit" : "loss"}`}>{num}</p>
+          <p className={`${num >0 ? "profit" : "loss"}`}>{num.toFixed(3)}</p>
         </>
       )
     }
