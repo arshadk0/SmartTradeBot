@@ -8,7 +8,7 @@ const Inventory = () => {
   const [wallet , setWallet] = useState([])
   const [btcUsdtPrice , setbtcUsdtPrice] = useState(0) 
 
-  var btcStream = new WebSocket("wss://stream.binance.com:9443/ws/btcusdt@ticker")
+  let btcStream = new WebSocket("wss://stream.binance.com:9443/ws/btcusdt@ticker")
   btcStream.onmessage = function(event){
     // console.log(JSON.parse(event.data)["c"])
     setbtcUsdtPrice(JSON.parse(event.data)["c"])
@@ -19,6 +19,12 @@ const Inventory = () => {
     .then(res => res.data)
     .then(data => setWallet(data))
   } , [])
+
+  // let walletData = new WebSocket("http://localhost:3000/getWallet")
+  // walletData.onmessage = function(event){
+  //   // console.log(JSON.parse(event.data)["c"])
+  //   setWallet(JSON.parse(event.data))
+  // }
   
   
   return (

@@ -11,6 +11,11 @@ const { Pool, Client } = require("pg");
 const { log } = require('console');
 const cors = require("cors")
 const api = "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT";
+const server = require('http').createServer(app)
+const webSocket = require('ws');
+const { message } = require('antd');
+const wss_wallet = new webSocket.Server({server:server, path:'/getWallet'})
+const wss_transactions = new webSocket.Server({port:3002, path:'/allTransactions'})
 
 app.use(bodyParser.json())
 app.use(
@@ -20,56 +25,48 @@ app.use(
 )
 app.use(cors())
 
-var pool;
-function connect_database(){
-    pool = new Pool({
-        user: 'team1',
-        host: 'practisedb-fresher.cdsamxevdhkl.ap-south-1.rds.amazonaws.com',
-        database: 'projects_db',
-        password: 'Od@5$ge1vMX1qF3$Wr',
-        port: 49218,
-    })
-    pool.connect(function(err) {
-        if (err) throw err;
-        console.log("Database Connected!");
-    });    
-}
+let webSocketTransaction, webSocketWallet;
 
 async function getLatestPrice(){
-    var price
-    const response = await axios.get(api) //working
+    const response = await axios.get(api) 
     return response.data["price"];
 }
 
-
 async function createLatestPrice(time, price){
-    pool.query("INSERT INTO prices (time_stamp, price)VALUES("+time+","+price+")",(err, res) => { //working
-    });      
+    await db.createLatestPrice(time, price)
+    console.log(`Successully inserted ${price} at time ${time}`);  
 }
 
 async function getPrevTenMinsPrice(cTime){
     const pTime = cTime-10
-    const response = await axios.get("http://localhost:3000/findTenMinsPrice?time_stamp="+pTime) //working
-    if(response.data.length == 0) return undefined
-    return response.data[0]['price']
+    const response = await db.findTenMinsPrice(pTime) 
+    data  = JSON.parse(response)
+    if(data.length == 0) return undefined
+    return data[0]['price']
 }
 
-async function getPercentPriceDiff(cPrice, pPrice){ //working
+async function getPercentPriceDiff(cPrice, pPrice){ 
     if(pPrice === undefined) return 0
     return (cPrice-pPrice)/pPrice;
 }
 
-async function getLastTrans(){   //working
-    const response = await axios.get("http://localhost:3000/lastTransaction")
-
-    return { "time":response.data[0]["time_stamp"], "btc":response.data[0]["updated_btc_inventory"], "usdt":response.data[0]["updated_usdt_inventory"] }
+async function getLastTrans(){   
+    const response = await db.lastTransaction()
+    const data = JSON.parse(response)
+    return { "time":data[0]["time_stamp"], "btc":data[0]["updated_btc_inventory"], "usdt":data[0]["updated_usdt_inventory"] }
 }
 
-async function createOrder(priceDiff, time_stamp, currPrice, btc, usdt){
+function CalculateProfitLoss(currPrice, prevPrice, btc, usdt, updated_btc, updated_usdt){
+    const prevValue = prevPrice*btc + usdt
+    const currValue = currPrice*updated_btc + updated_usdt
+    return (currValue-prevValue)
+}
+
+async function createOrder(priceDiff, time_stamp, currPrice, btc, usdt, prevPrice){
     var Order_type, updated_btc, updated_usdt
     const trade_amount = 0.001
     const trade_value = trade_amount*currPrice;
-    if(priceDiff>0.0002){
+    if(priceDiff>0.0001){
         Order_type = 'Sell'
         updated_btc = btc - trade_amount
         updated_usdt = usdt + trade_value
@@ -79,52 +76,111 @@ async function createOrder(priceDiff, time_stamp, currPrice, btc, usdt){
         updated_btc = btc + trade_amount
         updated_usdt = usdt - trade_value
     }
-    pool.query("INSERT INTO transaction (time_stamp, order_type, trade_amount, trade_price, trade_value, updated_btc_inventory, updated_usdt_inventory)VALUES("+time_stamp+","+"\'"+Order_type+"\'"+","+trade_amount+","+currPrice+","+trade_value+","+updated_btc+","+updated_usdt+")",(err, res) => { //working
-        //console.log(` ${time_stamp} ${Order_type} ${trade_amount} ${currPrice} ${trade_value} ${updated_btc} ${updated_usdt}`);
-    });
+    const profitLoss = CalculateProfitLoss(currPrice, prevPrice, btc, usdt, updated_btc, updated_usdt)
+    
+    db.createOrder(time_stamp, currPrice, trade_amount, trade_value, Order_type, updated_btc, updated_usdt, profitLoss)
+    console.log(`${Order_type} order Placed in Database`);
+    console.log(`Update wallet: BTC = ${updated_btc} and USDT = ${updated_usdt}`);
+    
+    if(profitLoss<0) console.log(`Our loss is ${profitLoss} USDT`);
+    else console.log(`Our Profit is ${profitLoss} USDT`);
 }
 
-async function init() {
-    connect_database();
-    db.initiatePool(pool)
-    cron.schedule('*/10 * * * * *', async () => {
 
-        //get price from binance api
+
+async function init() {
+    console.log("Connecting to Database......");
+    await db.connect_database();
+    console.log("CronJob is starting....");
+    cron.schedule('*/10 * * * * *', async () => {
+        console.log("Getting latest price from Binance API");
         const currPrice  = await getLatestPrice()
 
 
-        //put it in db
+        console.log(`Current price of USDT is ${currPrice}`);
         const currTime = Math.floor(new Date().getTime()/1000.0)
+
+
+        console.log(`Inserting current price in Database`);
         await createLatestPrice(currTime, currPrice)
 
-        //get prev 10min price
+
+        console.log(`Getting previous 10 minutes price from Database`);
         const prevPrice = await getPrevTenMinsPrice(currTime)
 
-        //do calculation
-        const priceDiff = await getPercentPriceDiff(currPrice, prevPrice)
 
-        // check price is 2% up or down
-        if(priceDiff>0.0002 || priceDiff<(-0.0002)){
+        if(prevPrice == undefined) console.log("Previous 10 minutes price is not found");
+        else console.log(`Previous 10 minutes price is ${prevPrice}`);
+        console.log("Calculating Price difference Percentage");
+
+
+        const priceDiff = await getPercentPriceDiff(currPrice, prevPrice)
+        if(prevPrice == undefined) console.log(`Can't calculate as previous 10 minutes price is not found`);
+        else console.log(`Price difference percentage is ${priceDiff}`);
+
+        if(priceDiff>0.0001 || priceDiff<(-0.0001)){
+
+            console.log("Condition meet... checking cooldown.....");
             const lastTrans = await getLastTrans()  //get last trans details(time, btc, usdt)
+
+
             if(currTime - lastTrans['time']>20){
-                //place order in database, update btc and update usdt
-                await createOrder(priceDiff, currTime, currPrice, lastTrans['btc'], lastTrans['usdt'])
+                console.log(`Last transaction done before ${currTime - lastTrans['time']} minutes. Initializing transaction......`);
+                console.log(`Wallet: BTC = ${lastTrans['btc']} and USDT = ${lastTrans['usdt']}`);
+                console.log("Inserting transaction details in Database and updating wallet");
+                
+                
+                await createOrder(priceDiff, currTime, currPrice, lastTrans['btc'], lastTrans['usdt'], prevPrice)
+                if(webSocketTransaction === undefined && webSocketWallet === undefined){
+                    console.log("Data not sent to frontend as WebSocketClient is not connected");
+                }
+                else{
+                    await triggerWebSocketTransaction()
+                    await triggerWebSocketWallet()
+                    console.log("Sent to frontend via websocket");
+                }
+                
+            }
+            else if(currTime - lastTrans['time']<20 && 0<currTime - lastTrans['time']){
+                console.log(`Cooldown period is on. Last transaction done before ${currTime - lastTrans['time']} minutes`);
             }
         }
+        else{
+            console.log("Condition does not meet for transaction");
+        } 
+        
+        console.log("Loading next loop  .   .    .   .    .   .    .    .   .    .   .    .   .");
     });
 }
 
 
-
-app.get('/allTransactions', db.allTransactions)
-app.get('/lastTransaction', db.lastTransaction)
-app.get('/findTenMinsPrice', db.findTenMinsPrice)
-app.get('/getWallet', db.getWallet)
+//app.get('/', (req, res) => res.send("Hi WEB"))
+//app.get('/getWallet', db.getWallet)
+//app.get('/allTransaction', db.allTransaction)
 
 const PORT = 3000;
-app.listen(PORT, function () {
+server.listen(PORT, async function () {
     console.log("Server Started on Port " + PORT);
 });
 
-init().then(() => { console.log('Function is started.'); });
+init().then(async () => { console.log('Bot is getting started......'); });
 
+async function triggerWebSocketTransaction(){
+    const allTransaction = await db.allTransactions()
+    webSocketTransaction.send(JSON.stringify(allTransaction))
+}
+async function triggerWebSocketWallet(){
+    const wallet = await db.lastTransaction()
+    webSocketWallet.send(JSON.stringify(wallet))
+}
+wss_transactions.on('connection',async function connection(ws_transactions){
+    webSocketTransaction = ws_transactions
+    console.log('WebSocketClient of transactions is connected!');
+    await triggerWebSocketTransaction()
+})
+
+wss_wallet.on('connection',async function connection(ws_wallet){
+    webSocketWallet = ws_wallet
+    console.log('WebSocketClient of wallet is connected!');
+    await triggerWebSocketWallet()
+})
