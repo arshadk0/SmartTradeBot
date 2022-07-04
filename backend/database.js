@@ -1,20 +1,22 @@
 const { response } = require("express");
 const { Pool, Client } = require("pg");
+require('dotenv').config({path: './.env'})
 var pool;
 function connect_database(){
     pool = new Pool({
-        user: 'team1',
-        host: 'practisedb-fresher.cdsamxevdhkl.ap-south-1.rds.amazonaws.com',
-        database: 'projects_db',
-        password: 'Od@5$ge1vMX1qF3$Wr',
-        port: 49218,
+        user: process.env.User,
+        host: process.env.Host,
+        database: process.env.Database,
+        password: process.env.Password,
+        port: process.env.Port,
     })
     pool.connect(function(err) {
         if (err) throw err;
         console.log("Database Connected!");
     });    
 }
-
+console.log(typeof parseFloat(process.env.tradeAmount));
+//connect_database()
 const wallet = (request, response)=>{
     //connect_database();
     pool.query("SELECT time, btc, usdt FROM wallet ORDER BY time DESC LIMIT 1", (err, res) => {

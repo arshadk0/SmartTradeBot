@@ -1,16 +1,17 @@
 const { response, request } = require("express");
 const { Pool, Client } = require("pg");
+require('dotenv').config({path: './.env'})
 var pool
 
 async function connect_database(){
     pool = new Pool({
-        user: 'team1',
-        host: 'practisedb-fresher.cdsamxevdhkl.ap-south-1.rds.amazonaws.com',
-        database: 'projects_db',
-        password: 'Od@5$ge1vMX1qF3$Wr',
-        port: 49218,
+        user: process.env.User,
+        host: process.env.Host,
+        database: process.env.Database,
+        password: process.env.Password,
+        port: process.env.Port,
     })
-    await pool.connect(async function(err) {
+    pool.connect(async function(err) {
         if (err) throw err;
         console.log("Database Connected!");
     });    

@@ -1,6 +1,7 @@
 const https = require('https')
 const express = require('express');
 const cron = require('node-cron');
+require('dotenv').config({path: '../.env'})
 const axios = require('axios');
 const request = require("request");
 const { application } = require('express');
@@ -10,7 +11,7 @@ const bodyParser = require('body-parser')
 const { Pool, Client } = require("pg");
 const { log } = require('console');
 const cors = require("cors")
-const api = "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT";
+const api = process.env.BinanceApi;
 const server = require('http').createServer(app)
 const webSocket = require('ws');
 const { message } = require('antd');
@@ -38,7 +39,7 @@ async function createLatestPrice(time, price){
 }
 
 async function getPrevTenMinsPrice(cTime){
-    const pTime = cTime-10
+    const pTime = cTime-parseFloat(process.env.timegap)
     const response = await db.findTenMinsPrice(pTime) 
     data  = JSON.parse(response)
     if(data.length == 0) return undefined
@@ -47,7 +48,7 @@ async function getPrevTenMinsPrice(cTime){
 
 async function getPercentPriceDiff(cPrice, pPrice){ 
     if(pPrice === undefined) return 0
-    return (cPrice-pPrice)/pPrice;
+    return ((cPrice-pPrice)*100)/pPrice;
 }
 
 async function getLastTrans(){   
@@ -64,9 +65,9 @@ function CalculateProfitLoss(currPrice, prevPrice, btc, usdt, updated_btc, updat
 
 async function createOrder(priceDiff, time_stamp, currPrice, btc, usdt, prevPrice){
     var Order_type, updated_btc, updated_usdt
-    const trade_amount = 0.001
+    const trade_amount = parseFloat(process.env.tradeAmount)
     const trade_value = trade_amount*currPrice;
-    if(priceDiff>0.0001){
+    if(priceDiff>parseFloat(process.env.percDiff)){
         Order_type = 'Sell'
         updated_btc = btc - trade_amount
         updated_usdt = usdt + trade_value
@@ -118,13 +119,13 @@ async function init() {
         if(prevPrice == undefined) console.log(`Can't calculate as previous 10 minutes price is not found`);
         else console.log(`Price difference percentage is ${priceDiff}`);
 
-        if(priceDiff>0.0001 || priceDiff<(-0.0001)){
+        if(priceDiff>parseFloat(process.env.percDiff) || priceDiff<(-(parseFloat(process.env.percDiff)))){
 
             console.log("Condition meet... checking cooldown.....");
             const lastTrans = await getLastTrans()  //get last trans details(time, btc, usdt)
 
 
-            if(currTime - lastTrans['time']>20){
+            if(currTime - lastTrans['time']>parseFloat(process.env.coolDown)){
                 console.log(`Last transaction done before ${currTime - lastTrans['time']} minutes. Initializing transaction......`);
                 console.log(`Wallet: BTC = ${lastTrans['btc']} and USDT = ${lastTrans['usdt']}`);
                 console.log("Inserting transaction details in Database and updating wallet");
@@ -141,7 +142,7 @@ async function init() {
                 }
                 
             }
-            else if(currTime - lastTrans['time']<20 && 0<currTime - lastTrans['time']){
+            else if(currTime - lastTrans['time']<parseFloat(process.env.coolDown) && 0<currTime - lastTrans['time']){
                 console.log(`Cooldown period is on. Last transaction done before ${currTime - lastTrans['time']} minutes`);
             }
         }
