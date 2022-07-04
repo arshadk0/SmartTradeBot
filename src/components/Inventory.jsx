@@ -62,7 +62,7 @@ const Inventory = ({setPwallet}) => {
         </div>
 
         {
-          wallet.map(data => {
+          wallet?.map(data => {
             return (
               <div >
                 <h4>Real time price</h4>
